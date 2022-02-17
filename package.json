@@ -1,0 +1,27 @@
+{
+  "name": "publicsphere",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start:windows": "cd server && npm run start:windows && cd ../packages/Text && npm run start:windows",
+    "start:mac": "cd server && npm run start:mac && cd ../packages/Text && npm run start:mac"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aceslowman/publicsphere.git"
+  },
+  "optionalDependencies": {
+    "ttab": "^0.7.1",
+    "wttab": "^1.2.2"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/aceslowman/publicsphere/issues"
+  },
+  "homepage": "https://github.com/aceslowman/publicsphere#readme",
+  "devDependencies": {
+    "nyc": "^15.1.0"
+  }
+}

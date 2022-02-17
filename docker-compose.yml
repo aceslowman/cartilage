@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  server:
+    image: node:12-alpine
+    networks:
+      - cartilage
+    command: sh -c "cd server && npm install && npm run server"
+    ports: 
+      - "4000:4000"
+    working_dir: /server
+    volumes:
+      - ./:/server
+    links:
+      - mongo
+  mongo:
+    container_name: mongo
+    image: mongo:5.0 
+    networks:
+      - cartilage
+    ports: 
+      - "27018:27017"
+    expose:
+      - "27017"
+    volumes: 
+      - cartilage-mongo-data:/var/lib/mongo
+      - ./scripts/rs-init.sh:/scripts/rs-init.sh
+    restart: always
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]      
+
+volumes:
+  cartilage-mongo-data:
+
+networks:
+  cartilage:
+    driver: bridge
