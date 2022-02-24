@@ -21,20 +21,19 @@ const fs = require("fs");
 */
 const port = 4000;
 
-const key = fs.readFileSync("./ca.key");
-const cert = fs.readFileSync("./ca.pem");
+// const key = fs.readFileSync("./ca.key");
+// const cert = fs.readFileSync("./ca.pem");
 
 process.env["NODE_TLS_REJECT_UNAUTHORIZED"] = 0;
 
 // const server = https
 //   .createServer({ key: key, cert: cert }, app)
 //   .listen(port, "0.0.0.0"); // ip is specific for docker
-  
+
 // const port = parseInt(process.env.PORT);
 const server = app.listen(port, function () {
   console.log("main server listening on port " + port);
 });
-
 
 /* --------------------------------------------------------------------------
   SET UP WEBSOCKETS
@@ -50,10 +49,9 @@ wss.on("connection", (ws) => {
 
   ws.on("message", async (m) => {
     let message = JSON.parse(m);
-    console.log("received message", message);
+    // console.log("received message", message);
 
     switch (message.type) {
-
       /*  
         expected format
 
@@ -69,6 +67,7 @@ wss.on("connection", (ws) => {
         subscribers.set(subscriberId, {
           id: subscriberId,
           socket: ws,
+          subscriberGroup: message.subscriberGroup,
         });
 
         /* send back the subscriber session id */
@@ -76,6 +75,7 @@ wss.on("connection", (ws) => {
           JSON.stringify({
             type: "subscriber_start_session_successful",
             subscriberSessionId: subscriberId,
+            subscriberGroup: message.subscriberGroup,
           })
         );
 
@@ -95,7 +95,7 @@ wss.on("connection", (ws) => {
         /* receive update from node */
         buffer = message.data.content;
 
-        console.log("buffer", buffer);
+        // console.log("buffer", buffer);
 
         /* 
           update the node on the database 
@@ -109,9 +109,18 @@ wss.on("connection", (ws) => {
         break;
       case "broadcast":
         /* send along incoming message to all subscribers */
-        subscribers.forEach((con) => {
-          con.socket.send(JSON.stringify(message));
-        });
+        if (message.subscriberGroup) {
+          Array.from(subscribers.values())
+            .filter((e) => e.subscriberGroup === message.subscriberGroup)
+            .forEach((con) => {
+              con.socket.send(JSON.stringify(message));
+            });
+        } else {
+          subscribers.forEach((con) => {
+            con.socket.send(JSON.stringify(message));
+          });
+        }
+
         break;
       default:
         console.log("message received without TYPE");
@@ -131,9 +140,7 @@ wss.on("connection", (ws) => {
 const initDatabase = async () => {
   console.log("initializing database");
 
-  await mongoose.connect(
-    "mongodb://mongo:27017/test"
-  );
+  await mongoose.connect("mongodb://mongo:27017/test");
 };
 
 let db = mongoose.connection;
