@@ -11,7 +11,6 @@ const cors = require("cors");
 const https = require("https");
 app.use(cors());
 const fs = require("fs");
-const { hasSubscribers } = require("diagnostics_channel");
 
 /*  
   MainServer
