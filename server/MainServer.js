@@ -11,6 +11,7 @@ const cors = require("cors");
 const https = require("https");
 app.use(cors());
 const fs = require("fs");
+const { hasSubscribers } = require("diagnostics_channel");
 
 /*  
   MainServer
@@ -63,6 +64,7 @@ wss.on("connection", (ws) => {
         console.log("subscriber session started");
         /* generate subscriber session id */
         const subscriberId = nanoid();
+        id = subscriberId;
 
         subscribers.set(subscriberId, {
           id: subscriberId,
@@ -128,9 +130,18 @@ wss.on("connection", (ws) => {
     }
   });
 
-  ws.on("close", (m) => {
-    console.log("TODO delete connection", id);
-    // connections.delete(id);
+  ws.on("close", () => {
+    console.log("deleting connection", id);
+    /* update all clients with new peer count */
+    subscribers.delete(id);
+    subscribers.forEach((con) => {
+      con.socket.send(
+        JSON.stringify({
+          type: "subscriber_left",
+          subscriber_id: id,
+        })
+      );
+    });
   });
 });
 
